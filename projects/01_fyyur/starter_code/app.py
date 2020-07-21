@@ -5,7 +5,15 @@
 import json
 import dateutil.parser
 import babel
-from flask import Flask, render_template, request, Response, flash, redirect, url_for
+from flask import (
+  Flask, 
+  render_template, 
+  request, 
+  Response, 
+  flash, 
+  redirect, 
+  url_for
+)
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 import logging
@@ -17,77 +25,21 @@ import sys
 from datetime import datetime
 from sqlalchemy import func
 from enums import StateEnum
+from models import (
+  Venue,
+  Artist,
+  VenueGenre,
+  ArtistGenre,
+  Show,
+  Object
+)
+from config import app, db
 
 #----------------------------------------------------------------------------#
 # App Config.
 #----------------------------------------------------------------------------#
 
-app = Flask(__name__)
 moment = Moment(app)
-app.config.from_object('config')
-db = SQLAlchemy(app)
-
-migrate = Migrate(app, db)
-
-#----------------------------------------------------------------------------#
-# Models.
-#----------------------------------------------------------------------------#
-
-class Venue(db.Model):
-  __tablename__ = 'Venue'
-
-  id = db.Column(db.Integer, primary_key=True)
-  name = db.Column(db.String)
-  city = db.Column(db.String(120))
-  state = db.Column(db.String(120))
-  address = db.Column(db.String(120))
-  phone = db.Column(db.String(120))
-  image_link = db.Column(db.String(500))
-  facebook_link = db.Column(db.String(120))
-  genres = db.relationship('VenueGenre', backref='venue', lazy=True)
-  website = db.Column(db.String(120))
-  seeking_talent = db.Column(db.Boolean)
-  seeking_description = db.Column(db.String)
-
-class Artist(db.Model):
-  __tablename__ = 'Artist'
-
-  id = db.Column(db.Integer, primary_key=True)
-  name = db.Column(db.String)
-  city = db.Column(db.String(120))
-  state = db.Column(db.String(120))
-  phone = db.Column(db.String(120))
-  genres = db.relationship('ArtistGenre', backref='artist', lazy=True)
-  image_link = db.Column(db.String(500))
-  facebook_link = db.Column(db.String(120))
-  website = db.Column(db.String(120))
-  seeking_venue = db.Column(db.Boolean)
-  seeking_description = db.Column(db.String)
-
-class Show(db.Model):
-  __tablename__ = 'Show'
-
-  id = db.Column(db.Integer, primary_key=True)
-  venue_id = db.Column(db.Integer, db.ForeignKey('Venue.id'), nullable=False)
-  artist_id = db.Column(db.Integer, db.ForeignKey('Artist.id'), nullable=False)
-  start_time = db.Column(db.DateTime, nullable=False)
-
-class VenueGenre(db.Model):
-  __tablename__ = 'VenueGenre'
-
-  id = db.Column(db.Integer, primary_key=True)
-  venue_id = db.Column(db.Integer, db.ForeignKey('Venue.id'), nullable=False)
-  genre = db.Column(db.String, nullable=False)
-
-class ArtistGenre(db.Model):
-  __tablename__ = 'ArtistGenre'
-
-  id = db.Column(db.Integer, primary_key=True)
-  artist_id = db.Column(db.Integer, db.ForeignKey('Artist.id'), nullable=False)
-  genre = db.Column(db.String, nullable=False)
-
-class Object(object):
-  pass
 
 #----------------------------------------------------------------------------#
 # Filters.
@@ -223,6 +175,13 @@ def create_venue_form():
 
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
+  us_phone_num = '^([0-9]{3})[-][0-9]{3}[-][0-9]{4}$'
+  match = re.search(us_phone_num, request.form['phone'])
+  if not match:
+    flash('Error! phone number must be in format xxx-xxx-xxxx')
+    form = VenueForm(obj=venue)  
+    return render_template('forms/new_venue.html', form=form, venue=venue)
+
   try:
     name = request.form['name']
     city = request.form['city']
@@ -244,7 +203,7 @@ def create_venue_submission():
 
     venue = Venue(name=name, city=city, state=state, address=address, phone=phone, image_link=image_link, facebook_link=facebook_link,\
        genres=genres, website=website, seeking_talent=seeking_talent, seeking_description=seeking_description)
-
+    
     db.session.add(venue)
     db.session.commit()
 
@@ -481,6 +440,13 @@ def create_artist_form():
 @app.route('/artists/create', methods=['POST'])
 def create_artist_submission():
   # called upon submitting the new artist listing form
+  us_phone_num = '^([0-9]{3})[-][0-9]{3}[-][0-9]{4}$'
+  match = re.search(us_phone_num, request.form['phone'])
+  if not match:
+    flash('Error! phone number must be in format xxx-xxx-xxxx')
+    form = ArtistForm(data=request.form)
+    return render_template('forms/new_artist.html', form=form)
+
   try:
     name = request.form['name']
     city = request.form['city']
