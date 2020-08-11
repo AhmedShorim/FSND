@@ -88,7 +88,51 @@ GET '/categories'
 '6' : "Sports"}
 
 ```
+## API Referrence
 
+# Endpoints
+GET '/categories'
+GET '/questions'
+DELETE '/questions/<question_id>'
+POST '/questions'
+POST '/questions/search'
+GET '/categories/<category_id>/questions'
+POST '/quizzes'
+
+# GET '/categories'
+- Fetches all the categories available
+- Request Arguments: None
+- Returns: An object containing a "success" flag and the list of categories inside "categories"
+
+# GET '/questions'
+- Fetches all the questions available paged by 10 per page
+- Request Arguments: "page" as a request argument containing the page number to be fetched
+- Returns: An object containing a "success" flag, the list of questions inside "questions", total number of questions in "total_questions", all categories available in "categories" and the current category id in "current_category"
+
+# DELETE '/questions/<question_id>'
+- Deletes a questionn
+- Request Arguments: "question_id" id of the question to be deleted
+- Returns: An object containing a "success" flag
+
+# POST '/questions'
+- Added a new question
+- Request Arguments: An object containg question details ("question", "answer", "category", "difficulty")
+- Returns: An object containing a "success" flag
+
+# POST '/questions/search'
+- Searches for questions
+- Request Arguments: "searchTerm" containing a search term to search for
+- Returns: An object containing a "success" flag, the list of questions inside "questions", total number of questions in "total_questions" and the current category id in "current_category"
+
+# GET '/categories/<category_id>/questions'
+- Fetches all questions related to a specific category
+- Request Arguments: "category_id" containing the category id of the category which the questions related to it is being fetched
+- Returns: An object containing a "success" flag, the list of questions inside "questions", total number of questions in "total_questions" and the current category id in "current_category"
+
+# POST '/quizzes'
+- Fetches a question for a quiz
+- Request Arguments: "quiz_category" the category to fetch a question for, "previous_questions" list of ids of questions already fetched before to avoid fetching them again
+- Returns: An object containing "question" an object containing the next question or its empty if no more quetions are available and a "success" flag
 
 ## Testing
 To run the tests, run
